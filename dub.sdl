@@ -7,4 +7,11 @@ targetType "staticLibrary"
 targetPath "lib"
 targetName "BindBC_Loader"
 libs "dl" platform="linux"
-dflags "-betterC"
+
+configuration "noBC" {
+
+}
+
+configuration "yesBC" {
+    dflags "-betterC"
+}
