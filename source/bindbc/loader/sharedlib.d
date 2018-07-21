@@ -17,7 +17,7 @@ struct SharedLib {
 /// Indicates an uninitialized or unassigned handle.
 enum invalidHandle = SharedLib.init;
 
-// Contains informaion about shared library and symbol load failures.
+// Contains information about shared library and symbol load failures.
 struct ErrorInfo {
 private:
     char[32] _error;
@@ -210,3 +210,29 @@ version(Windows)
         else strncpy(buf, "Unknown Error\0", len);
     }
 }
+else version(Posix) {
+    import core.sys.posix.dlfcn;
+
+    void* loadLib(const(char)* name)
+    {
+        return dlopen(name, RTLD_NOW);
+    }
+
+    void unloadLib(void* lib)
+    {
+        dlclose(lib);
+    }
+
+    void* loadSymbol(void* lib, const(char)* symbolName)
+    {
+        return dlsym(lib, symbolName);
+    }
+
+    void sysError(char* buf, size_t len)
+    {
+        char* msg = dlerror();
+        strncpy(buf, msg != null ? msg : "Unknown Error", len);
+        buf[len - 1] = 0;
+    }
+}
+else static assert(0, "bindbc-loader is not implemented on this platform.");
