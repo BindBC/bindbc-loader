@@ -92,6 +92,9 @@ void freeErrors()
 */
 void bindSymbol(SharedLib lib, void** ptr, const(char)* symbolName)
 {
+    // Without this, DMD can hang in release builds
+    pragma(inline, false);
+
     assert(lib._handle);
     auto sym = loadSymbol(lib._handle, symbolName);
     if(sym) {
