@@ -140,7 +140,7 @@ void bindSymbol_stdcall(Func)(SharedLib lib, ref Func f, const(char)* symbolName
 
         ParameterTypeTuple!f params;
         char[128] mangled;
-        snprintf(mangled.ptr, mangled.length, "%s@%d", name, paramSize);
+        snprintf(mangled.ptr, mangled.length, "_%s@%d", symbolName, paramSize(params));
         symbolName = mangled.ptr;
     }
     bindSymbol(lib, cast(void**)&f,  symbolName);
