@@ -11,8 +11,8 @@ static if((void*).sizeof == 8) {
     enum bind32 = false;
 }
 else {
-    enum bind64 = true;
-    enum bind32 = false;
+    enum bind64 = false;
+    enum bind32 = true;
 }
 
 version(Windows) enum bindWindows = true;

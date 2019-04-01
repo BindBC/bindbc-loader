@@ -106,6 +106,47 @@ void bindSymbol(SharedLib lib, void** ptr, const(char)* symbolName)
 }
 
 /**
+    Formats a symbol using the Windows stdcall mangling if necessary before passing it on to
+    bindSymbol.
+
+    Params:
+        lib =           a valid handle to a shared library loaded via the `load` function.
+        ptr =           a pointer to a function or variable pointer whose declaration is
+                        appropriate for the symbol being bound (it is up to the caller to
+                        verify the types match).
+        symbolName =    the name of the symbol to bind.
+*/
+void bindSymbol_stdcall(Func)(SharedLib lib, ref Func f, const(char)* symbolName)
+{
+    import bindbc.loader.system : bindWindows, bind32;
+
+    static if(bindWindows && bind32) {
+        import core.stdc.stdio : snprintf;
+        import std.traits : ParameterTypeTuple;
+
+        uint paramSize(A...)(A args)
+        {
+            size_t sum = 0;
+            foreach(arg; args) {
+                sum += arg.sizeof;
+
+                // Align on 32-bit stack
+                if((sum & 3) != 0) {
+                    sum += 4 - (sum & 3);
+                }
+            }
+            return sum;
+        }
+
+        ParameterTypeTuple!f params;
+        char[128] mangled;
+        snprintf(mangled.ptr, mangled.length, "%s@%d", name, paramSize);
+        symbolName = mangled.ptr;
+    }
+    bindSymbol(lib, cast(void**)&f,  symbolName);
+}
+
+/**
     Loads a shared library from disk, using the system-specific API and search rules.
 
     libName =           the name of the library to load. May include the full or relative
