@@ -86,6 +86,6 @@ if(loadSDL != sdlSupport) {
 ## Configuration
 `bindbc-loader` is not configured to compile with `-betterC` compatibility by default. Users of packages dependent on `bindbc-loader` should not attempt to configure `bindbc-loader` directly. Those packages will have their own configuration options that will select the appropriate loader configuration.
 
-Implementors of bindings using `bindbc-loader` can make use of two configurations: `nobc` and `yesbc`. The former, which does not enable `-betterC`, is the default. The latter enables `-betterC`. Binding implementors typically will provide four configuration options: two for static bindings (`nobc` and `yesbc` versions) and two for dynamic bindings (`nogc` and `yesbc` versions).
+Implementors of bindings using `bindbc-loader` can make use of two configurations: `nobc` and `yesbc`. The former, which does not enable `-betterC`, is the default. The latter enables `-betterC`. Binding implementors typically will provide four configuration options: two for static bindings (`nobc` and `yesbc` versions) and two for dynamic bindings (`nobc` and `yesbc` versions).
 
 Anyone using multiple BindBC packages must ensure that they are all configured with the same `-betterC` option. Configuring one BindBC package to use the `nobc` configuration and another to use the `yesbc` configuration will cause conflicting versions of `bindbc-loader` to be compiled, resulting either in compiler or linker errors.
