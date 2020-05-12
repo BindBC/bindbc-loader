@@ -213,6 +213,8 @@ void addErr(const(char)* errstr, const(char)* message)
 version(Windows)
 {
     import core.sys.windows.windows;
+    extern(Windows) @nogc nothrow alias pSetDLLDirectory = BOOL function(const(char)*);
+    pSetDLLDirectory setDLLDirectory;
 
     void* loadLib(const(char)* name)
     {
@@ -252,6 +254,60 @@ version(Windows)
             LocalFree(msgBuf);
         }
         else strncpy(buf, "Unknown Error\0", len);
+    }
+
+    /**
+        Adds a path to the default search path on Windows, replacing the path set in a previous
+        call to the same function.
+
+        Any path added to this function will be added to the default DLL search path as documented at
+        https://docs.microsoft.com/en-us/win````dows/win32/api/winbase/nf-winbase-setdlldirectoryw.
+
+        Generally, when loading DLLs on a path that is not on the search path, e.g., from a subdirectory
+        of the application, the path should be prepended to the DLL name passed to the load function,
+        e.g., "dlls\\SDL2.dll". If `setCustomLoaderSearchPath(".\\dlls")` is called first, then the subdirectory
+        will become part of the DLL search path and may be ommited in the call to the load function. (Be
+        aware that ".\\dlls" is relative to the current working directory, which may not be the application
+        directory, so the path should be built appropriately. If `Runtime.args[0]` (from `core.runtime`)
+        is simply the application name with no path, then nothing more need be done. If it contains a path,
+        you can strip the application name from it and append the relative path to the libraries.
+        Use the result in the call to `setCustomLoaderSearchPath`.)
+
+        Some DLLs may depend on other DLLs, perhaps even attempting to load them dynamically at run time
+        (e.g., SDL2_image only loads dependencies such as libpng if it is initialized at run time with
+        PNG support). In this case, if the DLL and its dependencies are placed in a subdirectory and
+        loaded as e.g., "dlls\\SDL2_image.dll", then it will not be able to find its dependencies; the
+        system loader will look for them on the regular DLL search path. When that happens, the solution
+        is to call `setCustomLoaderSearchPath` with the subdirectory before initializing the library.
+
+        Calling this function with `null` as the argument will reset the default search path.
+
+        When the function returns `false`, the relevant `ErrorInfo` is added to the global error list and can
+        be retrieved by looping through the array returned by the `errors` function.
+
+        When placing DLLs in a subdirectory of the application, it should be considered good practice to
+        call `setCustomLoaderSearchPath` to ensure all DLLs load properly. It should also be considered good
+        practice to reset the default search path once all DLLs are loaded.
+
+        This function is only available on Windows, so any usage of it should be preceded with
+        `version(Windows)`.
+
+        Params:
+            path = the path to add to the DLL search path, or `null` to reset the default.
+
+        Returns:
+            `true` if the path was successfully added to the DLL search path, otherwise `false`.
+    */
+    public
+    bool setCustomLoaderSearchPath(const(char)* path)
+    {
+        if(!setDLLDirectory) {
+            auto lib = load("Kernel32.dll");
+            if(lib == invalidHandle) return false;
+            lib.bindSymbol(cast(void**)&setDLLDirectory, "SetDllDirectoryA");
+            if(!setDLLDirectory) return false;
+        }
+        return setDLLDirectory(path) != 0;
     }
 }
 else version(Posix) {
