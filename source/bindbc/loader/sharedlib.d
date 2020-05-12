@@ -261,17 +261,14 @@ version(Windows)
         call to the same function.
 
         Any path added to this function will be added to the default DLL search path as documented at
-        https://docs.microsoft.com/en-us/win````dows/win32/api/winbase/nf-winbase-setdlldirectoryw.
+        https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectoryw.
 
         Generally, when loading DLLs on a path that is not on the search path, e.g., from a subdirectory
         of the application, the path should be prepended to the DLL name passed to the load function,
         e.g., "dlls\\SDL2.dll". If `setCustomLoaderSearchPath(".\\dlls")` is called first, then the subdirectory
-        will become part of the DLL search path and may be ommited in the call to the load function. (Be
+        will become part of the DLL search path and the path may be omitted from the load function. (Be
         aware that ".\\dlls" is relative to the current working directory, which may not be the application
-        directory, so the path should be built appropriately. If `Runtime.args[0]` (from `core.runtime`)
-        is simply the application name with no path, then nothing more need be done. If it contains a path,
-        you can strip the application name from it and append the relative path to the libraries.
-        Use the result in the call to `setCustomLoaderSearchPath`.)
+        directory, so the path should be built appropriately.)
 
         Some DLLs may depend on other DLLs, perhaps even attempting to load them dynamically at run time
         (e.g., SDL2_image only loads dependencies such as libpng if it is initialized at run time with

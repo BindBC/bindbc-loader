@@ -89,3 +89,41 @@ if(loadSDL != sdlSupport) {
 Implementors of bindings using `bindbc-loader` can make use of two configurations: `nobc` and `yesbc`. The former, which does not enable `-betterC`, is the default. The latter enables `-betterC`. Binding implementors typically will provide four configuration options: two for static bindings (`nobc` and `yesbc` versions) and two for dynamic bindings (`nobc` and `yesbc` versions).
 
 Anyone using multiple BindBC packages must ensure that they are all configured with the same `-betterC` option. Configuring one BindBC package to use the `nobc` configuration and another to use the `yesbc` configuration will cause conflicting versions of `bindbc-loader` to be compiled, resulting either in compiler or linker errors.
+
+## Default Windows search path
+Sometimes, it is desirable to place shared libraries in a subdirectory of the application. This is particularly common on Windows. Normally, any DLLs in a subdirectory can be loaded by
+prepending the subdirectory to the DLL name and passing that name to the appropriate load function (e.g., `loadSDL("dlls\\SDL2.dll")`). This is fine if the DLL has no dependency on any
+other DLLs, or if its dependencies are somewhere on the default DLL search path. If, however, its dependencies are also in the same subdirectory, then the DLL will fail to load---the
+system loader will be looking for the dependencies on the default DLL search path.
+
+As a remedy, `bindbc-loader` exposes the `setCustomLoaderSearchPath` function on Windows only (other systems expose no API to programmatically modify the shared library search path). To
+use it, call it prior to loading any DLLs and provide as the sole argument the path where the DLLs reside. Once this function is called, then the default `load*` functions may be called
+with no arguments as long as the DLL names have not been changed from the default.
+
+An example with `bindbc-sdl`:
+
+```d
+import bindbc.loader,
+       bindbc.sdl;
+
+// Assume the DLLs are stored in the "dlls" subdirectory
+version(Windows) setCustomLoaderSearchPath("dlls");
+
+if(loadSDL() < sdlSupport) { /* handle error */ }
+if(loadSDL_Image() < sdlImageSupport) { /* handle error */ }
+
+// Give SDL_image a change to load libpng and libjpeg
+auto flags = IMG_INIT_PNG | IMG_INIT_JPEG;
+if(IMG_Init(flags) != flags) { /* handle error */ }
+
+// Now reset the default loader search path
+version(Windows) setCustomLoaderSearchPath(null);
+```
+
+If the DLL name has beem changed to something the loader does not recognize, e.g., "MySDL.dll", then it will still need to be passed to the load function, e.g., `loadSDL("MySDL.dll")`.
+
+Please note that it is up to the programmer to ensure the path is valid. Generally, using a relative path like "dlls" or ".\\dlls" is unreliable, as the program may be started in directory
+that is different from the application directory. It is up to the programmer to ensure that the path is valid. The loader makes no attempt to fetch the current working directory or validate
+the path.
+
+For details on how this function affects the system DLL search path, see the documentation of [the Win32 API function `SetDllDirectoryW`](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectoryw)
