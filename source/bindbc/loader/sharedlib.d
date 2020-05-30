@@ -28,13 +28,13 @@ public @nogc nothrow @property:
         Returns the string "Missing Symbol" to indicate a symbol load failure, and
         the name of a library to indicate a library load failure.
     */
-    const(char)* error() const { return _error.ptr; }
+    const(char)* error() return const { return _error.ptr; }
 
     /**
         Returns a symbol name for symbol load failures, and a system-specific error
         message for library load failures.
     */
-    const(char)* message() const { return _message.ptr; }
+    const(char)* message() return const { return _message.ptr; }
 }
 
 private {
