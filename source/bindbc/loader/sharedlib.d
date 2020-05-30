@@ -85,7 +85,7 @@ void freeErrors()
 
     Params:
         lib =           a valid handle to a shared library loaded via the `load` function.
-        ptr =           a pointer to a function or variable pointer whose declaration is
+        ptr =           a pointer to a function or variable whose declaration is
                         appropriate for the symbol being bound (it is up to the caller to
                         verify the types match).
         symbolName =    the name of the symbol to bind.
@@ -111,12 +111,12 @@ void bindSymbol(SharedLib lib, void** ptr, const(char)* symbolName)
 
     Params:
         lib =           a valid handle to a shared library loaded via the `load` function.
-        ptr =           a pointer to a function or variable pointer whose declaration is
-                        appropriate for the symbol being bound (it is up to the caller to
-                        verify the types match).
+        ptr =           a reference to a function or variable of matching the template parameter
+                        type whose declaration is appropriate for the symbol being bound (it is up
+                        to the caller to verify the types match).
         symbolName =    the name of the symbol to bind.
 */
-void bindSymbol_stdcall(Func)(SharedLib lib, ref Func f, const(char)* symbolName)
+void bindSymbol_stdcall(T)(SharedLib lib, ref T ptr, const(char)* symbolName)
 {
     import bindbc.loader.system : bindWindows, bind32;
 
@@ -143,7 +143,7 @@ void bindSymbol_stdcall(Func)(SharedLib lib, ref Func f, const(char)* symbolName
         snprintf(mangled.ptr, mangled.length, "_%s@%d", symbolName, paramSize(params));
         symbolName = mangled.ptr;
     }
-    bindSymbol(lib, cast(void**)&f,  symbolName);
+    bindSymbol(lib, cast(void**)&ptr,  symbolName);
 }
 
 /**
