@@ -327,7 +327,7 @@ else version(Posix) {
 
     void sysError(char* buf, size_t len)
     {
-        char* msg = dlerror();
+        auto msg = dlerror();
         strncpy(buf, msg != null ? msg : "Unknown Error", len);
         buf[len - 1] = 0;
     }
