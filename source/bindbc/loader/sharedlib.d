@@ -4,6 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+/// Cross-platform interface to system APIs for manually loading C libraries.
 module bindbc.loader.sharedlib;
 
 import core.stdc.stdlib;
@@ -17,7 +18,7 @@ struct SharedLib {
 /// Indicates an uninitialized or unassigned handle.
 enum invalidHandle = SharedLib.init;
 
-// Contains information about shared library and symbol load failures.
+/// Holds information about failures in loading shared libraries and their symbols.
 struct ErrorInfo {
 private:
     char[32] _error;
@@ -45,7 +46,7 @@ private {
 @nogc nothrow:
 
 /**
-    Returns an slice containing all errors that have been accumulated by the
+    Returns a slice containing all `ErrorInfo` instances that have been accumulated by the
     `load` and `bindSymbol` functions since the last call to `resetErrors`.
 */
 const(ErrorInfo)[] errors()
@@ -54,7 +55,7 @@ const(ErrorInfo)[] errors()
 }
 
 /**
-    Returns the total number of errors that have been accumulated by the
+    Returns the total number of `ErrorInfo` instances that have been accumulated by the
     `load` and `bindSymbol` functions since the last call to `resetErrors`.
 */
 size_t errorCount()
@@ -166,9 +167,9 @@ SharedLib load(const(char)* libName)
     Unloads a shared library from process memory.
 
     Generally, it is not necessary to call this function at program exit, as the system will ensure
-    any shared libraries loaded by the process will be unloaded then. However, any loaded shared
-    libraries that are no longer needed by the program during runtime, such as those that are part
-    of a "hot swap" mechanism, should be unloaded to free up resources.
+    any shared libraries loaded by the process will be unloaded. However, it may be useful to call
+    this function to release shared libraries that are no longer needed by the program during runtime,
+    such as those that are part of a "hot swap" mechanism or an extension framework.
 */
 void unload(ref SharedLib lib) {
     if(lib._handle) {
@@ -260,7 +261,7 @@ version(Windows)
         Adds a path to the default search path on Windows, replacing the path set in a previous
         call to the same function.
 
-        Any path added to this function will be added to the default DLL search path as documented at
+        Any path added via this function will be added to the default DLL search path as documented at
         https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setdlldirectoryw.
 
         Generally, when loading DLLs on a path that is not on the search path, e.g., from a subdirectory
@@ -268,12 +269,12 @@ version(Windows)
         e.g., "dlls\\SDL2.dll". If `setCustomLoaderSearchPath(".\\dlls")` is called first, then the subdirectory
         will become part of the DLL search path and the path may be omitted from the load function. (Be
         aware that ".\\dlls" is relative to the current working directory, which may not be the application
-        directory, so the path should be built appropriately.)
+        directory, so the path should be constructed appropriately.)
 
         Some DLLs may depend on other DLLs, perhaps even attempting to load them dynamically at run time
         (e.g., SDL2_image only loads dependencies such as libpng if it is initialized at run time with
-        PNG support). In this case, if the DLL and its dependencies are placed in a subdirectory and
-        loaded as e.g., "dlls\\SDL2_image.dll", then it will not be able to find its dependencies; the
+        support for those dependencies). In this case, if the DLL and its dependencies are placed in a subdirectory and
+        loaded as e.g., "dlls\\SDL2_image.dll", then the dependencies will not be found; the
         system loader will look for them on the regular DLL search path. When that happens, the solution
         is to call `setCustomLoaderSearchPath` with the subdirectory before initializing the library.
 
