@@ -21,35 +21,42 @@ The function `bindbc.loader.sharedlib.errors` returns an array of `ErrorInfo` in
 
 Here is an example of what error handling might look like when loading the SDL library with `bindbc-sdl`:
 
+
 ```d
 // Import the dependent package
 import bindbc.sdl;
 
-/* Import the sharedlib module for error handling. Assigning an alias
- ensures the function names do not conflict with other public APIs
- and makes it obvious that the functions belong to the loader rather
- than bindbc.sdl. */
+/*
+ Import the sharedlib module for error handling. Assigning an alias ensures the function names do not conflict with
+ other public APIs. This isn't strictly necessary, but the API names are common enough that they could appear in other
+ packages.
+*/
 import loader = bindbc.loader.sharedlib;
 
 bool loadLib() {
-    // Compare the return value of loadSDL with the global `sdlSupport`
-    // constant, which is configured at compile time for a specific
-    // version of SDL.
-    SDLSupport ret = loadSDL();
+    /*
+     Compare the return value of loadSDL with the global `sdlSupport` constant, which is configured at compile time for
+     a specific version of SDL.
+    */
+    auto ret = loadSDL();
     if(ret != sdlSupport) {
         // Log the error info
         foreach(info; loader.errors) {
-            // A hypothetical logging routine
+            /*
+             A hypothetical logging function. Note that `info.error` and `info.message` are `const(char)*`, not
+             `string`.
+            */
             logError(info.error, info.message);
         }
 
-        // Construct a user-friendly error message for the user
+        // Optionally onstruct a user-friendly error message for the user
         string msg;
         if(ret == SDLSupport.noLibrary) {
             msg = "This application requires the SDL library.";
         } else {
             msg = "The version of the SDL library on your system is too low. Please upgrade."
         }
+        // A hypothetical message box function
         showMessageBox(msg);
         return false;
     }
