@@ -21,21 +21,21 @@ enum invalidHandle = SharedLib.init;
 /// Holds information about failures in loading shared libraries and their symbols.
 struct ErrorInfo {
 private:
-    char[32] _error;
-    char[96] _message;
+    char* _error;
+    char* _message;
 
 public @nogc nothrow @property:
     /**
         Returns the string "Missing Symbol" to indicate a symbol load failure, and
         the name of a library to indicate a library load failure.
     */
-    const(char)* error() return const { return _error.ptr; }
+    const(char)* error() return const { return _error; }
 
     /**
         Returns a symbol name for symbol load failures, and a system-specific error
         message for library load failures.
     */
-    const(char)* message() return const { return _message.ptr; }
+    const(char)* message() return const { return _message; }
 }
 
 private {
@@ -192,6 +192,12 @@ void allocErrs() {
     _errors = errs[0 .. newSize];
 }
 
+void copyString(char** dst, const(char)* src)
+{
+    *dst = cast(char*)malloc(strlen(src) + 1);
+    strcpy(*dst, src);
+}
+
 void addErr(const(char)* errstr, const(char)* message)
 {
     if(_errors.length == 0 || _errorCount >= _errors.length) {
@@ -199,14 +205,13 @@ void addErr(const(char)* errstr, const(char)* message)
     }
 
     auto pinfo = &_errors[_errorCount];
-    strcpy(pinfo._error.ptr, errstr);
+    copyString(&pinfo._error, errstr);
 
     if(message) {
-        strncpy(pinfo._message.ptr, message, pinfo._message.length);
-        pinfo._message[pinfo._message.length - 1] = 0;
+        copyString(&pinfo._message, message);
     }
     else {
-        sysError(pinfo._message.ptr, pinfo._message.length);
+        sysError(pinfo);
     }
     ++_errorCount;
 }
@@ -232,7 +237,7 @@ version(Windows)
         return GetProcAddress(lib, symbolName);
     }
 
-    void sysError(char* buf, size_t len)
+    void sysError(ErrorInfo* pinfo)
     {
         char* msgBuf;
         enum uint langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
@@ -250,11 +255,13 @@ version(Windows)
         );
 
         if(msgBuf) {
-            strncpy(buf, msgBuf, len);
-            buf[len - 1] = 0;
+            copyString(&pinfo._message, msgBuf);
             LocalFree(msgBuf);
         }
-        else strncpy(buf, "Unknown Error\0", len);
+        else
+        {
+            copyString(&pinfo._message, "Unknown Error");
+        }
     }
 
     /**
@@ -326,11 +333,11 @@ else version(Posix) {
         return dlsym(lib, symbolName);
     }
 
-    void sysError(char* buf, size_t len)
+    void sysError(ErrorInfo* pinfo)
     {
         auto msg = dlerror();
-        strncpy(buf, msg != null ? msg : "Unknown Error", len);
-        buf[len - 1] = 0;
+        if(!msg) copyString(&pinfo._message, "Uknown Error");
+        else copyString(&pinfo._message, msg);
     }
 }
 else static assert(0, "bindbc-loader is not implemented on this platform.");
