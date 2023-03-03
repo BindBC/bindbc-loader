@@ -1,8 +1,9 @@
 name "bindbc-loader"
-description "Cross-platform shared library loader usable in -betterC mode."
+description "Cross-platform shared library loader usable with BetterC."
 homepage ""
 license "Boost"
-authors "Mike Parker"
+authors "Aya Partridge" "Mike Parker"
+
 targetType "staticLibrary"
 targetPath "lib"
 targetName "BindBC_Loader"
