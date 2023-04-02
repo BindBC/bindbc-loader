@@ -12,6 +12,45 @@ enum LoadMsg{
 	badLibrary,
 }
 
+enum makeLibPaths = (string libName, string[][string] platformNames=["": []], string[][string] platformPaths=["": []]) nothrow pure @safe{
+	string[] namesFor(string platform){
+		if(platform in platformNames) return libName ~ platformNames[platform];
+		else return [libName];
+	}
+	string[] pathsFor(string platform){
+		if(auto ret = platform in platformPaths) return *ret;
+		return null;
+	}
+	string[] ret;
+	version(Windows){
+		ret ~= pathsFor("Windows");
+		foreach(n; namesFor("Windows")){
+			ret ~= [
+				n~`.dll`,
+			];
+		}
+	}else version(OSX){
+		ret ~= pathsFor("OSX");
+		foreach(n; namesFor("OSX")){
+			ret ~= [
+				`lib`~n~`.dylib`,
+				`/opt/homebrew/lib/lib`~n~`.dylib`,
+				n,
+				`/Library/Frameworks/`~n~`.framework/`~n,
+				`/System/Library/Frameworks/`~n~`.framework/`~n,
+			];
+		}
+	}else version(linux){
+		ret ~= pathsFor("linux");
+		foreach(n; namesFor("linux")){
+			ret ~= [
+				`lib`~n~`.so`,
+			];
+		}
+	}else static assert(0, "BindBC-Loader does not have library search paths set up for this platform.");
+	return ret;
+};
+
 enum makeDynloadFns = (string name, string libNames, string[] bindModules) nothrow pure @safe{
 	string dynloadFns = `
 private SharedLib lib;
