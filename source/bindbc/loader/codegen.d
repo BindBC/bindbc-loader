@@ -12,10 +12,10 @@ enum LoadMsg{
 	badLibrary,
 }
 
-enum makeLibPaths = (string libName, string[][string] platformNames=["": []], string[][string] platformPaths=["": []]) nothrow pure @safe{
+enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], string[][string] platformPaths=["": []]) nothrow pure @safe{
 	string[] namesFor(string platform){
-		if(platform in platformNames) return libName ~ platformNames[platform];
-		else return [libName];
+		if(platform in platformNames) return platformNames[platform] ~ names;
+		else return names;
 	}
 	string[] pathsFor(string platform){
 		if(auto ret = platform in platformPaths) return *ret;
