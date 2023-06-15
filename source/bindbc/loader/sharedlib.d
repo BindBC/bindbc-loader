@@ -155,7 +155,11 @@ void bindSymbol_stdcall(T)(SharedLib lib, ref T ptr, const(char)* symbolName){
 /**
 Loads a shared library from disk, using the system-specific API and search rules.
 
-libName = the name of the library to load. May include the full or relative path for the file.
+Params:
+	libName = the name of the library to load. May include the full or relative path for the file.
+
+Returns:
+	A shared library, or `invalidHandle` on failure.
 */
 SharedLib load(const(char)* libName){
 	auto handle = loadLib(libName);

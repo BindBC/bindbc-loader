@@ -1,6 +1,5 @@
 name "bindbc-loader"
 description "Cross-platform shared library loader usable with BetterC."
-homepage ""
 license "BSL-1.0"
 authors "Aya Partridge" "Mike Parker"
 
@@ -14,5 +13,5 @@ configuration "noBC" {
 }
 
 configuration "yesBC" {
-    dflags "-betterC"
+	buildOptions "betterC"
 }
