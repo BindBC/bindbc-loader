@@ -19,7 +19,7 @@ enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], st
 	}
 	string[] pathsFor(string platform){
 		if(auto ret = platform in platformPaths) return *ret;
-		return null;
+		else return null;
 	}
 	string[] ret;
 	version(Windows){
@@ -56,9 +56,9 @@ enum makeDynloadFns = (string name, string libNames, string[] bindModules) nothr
 private SharedLib lib;
 
 @nogc nothrow{
-void unload`~name~`(){ if(lib != invalidHandle) lib.unload(); }
+void unload`~name~`(){ if(lib != bindbc.loader.invalidHandle) lib.unload(); }
 
-bool is`~name~`Loaded(){ return lib != invalidHandle; }
+bool is`~name~`Loaded(){ return lib != bindbc.loader.invalidHandle; }
 
 LoadMsg load`~name~`(){
 	enum libNamesCT = `~libNames~`;
@@ -74,7 +74,7 @@ LoadMsg load`~name~`(){
 
 LoadMsg load`~name~`(const(char)* libName){
 	lib = bindbc.loader.load(libName);
-	if(lib == invalidHandle){
+	if(lib == bindbc.loader.invalidHandle){
 		return LoadMsg.noLibrary;
 	}
 	
