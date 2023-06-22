@@ -48,7 +48,11 @@ enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], st
 			];
 		}
 	}else static assert(0, "BindBC-Loader does not have library search paths set up for this platform.");
-	return ret;
+	string joined = `[`;
+	foreach(item; ret){
+		joined ~= `"` ~ item ~ `",`;
+	}
+	return joined ~ `]`;
 };
 
 enum makeDynloadFns = (string name, string libNames, string[] bindModules) nothrow pure @safe{
