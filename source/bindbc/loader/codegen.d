@@ -6,12 +6,6 @@
 +/
 module bindbc.loader.codegen;
 
-enum LoadMsg{
-	success,
-	noLibrary,
-	badLibrary,
-}
-
 enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], string[][string] platformPaths=["": []]) nothrow pure @safe{
 	string[] namesFor(string platform){
 		if(platform in platformNames) return platformNames[platform] ~ names;

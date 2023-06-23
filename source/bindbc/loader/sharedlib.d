@@ -19,6 +19,12 @@ char* => char[]
 const(char)* => string
 */
 
+enum LoadMsg{
+	success,
+	noLibrary,
+	badLibrary,
+}
+
 /// Handle to a shared library
 struct SharedLib{
 	private void* _handle;
