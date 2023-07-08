@@ -35,22 +35,23 @@ enum invalidHandle = SharedLib.init;
 
 /// Holds information about failures in loading shared libraries and their symbols.
 struct ErrorInfo{
-private:
-	char* _error;
-	char* _message;
+	private{
+		char* _error;
+		char* _message;
+	}
 	
-public @nogc nothrow @property:
+	nothrow @nogc:
 	/**
 	Returns the string "Missing Symbol" to indicate a symbol load failure, and
 	the name of a library to indicate a library load failure.
 	*/
-	const(char)* error() return const{ return _error; }
+	@property const(char)* error() return const{ return _error; }
 	
 	/**
 	Returns a symbol name for symbol load failures, and a system-specific error
 	message for library load failures.
 	*/
-	const(char)* message() return const{ return _message; }
+	@property const(char)* message() return const{ return _message; }
 }
 
 /*
