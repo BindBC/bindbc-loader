@@ -34,9 +34,9 @@ enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], st
 				`/System/Library/Frameworks/`~n~`.framework/`~n,
 			];
 		}
-	}else version(linux){
-		ret ~= pathsFor("linux");
-		foreach(n; namesFor("linux")){
+	}else version(Posix){
+		ret ~= pathsFor("Posix");
+		foreach(n; namesFor("Posix")){
 			ret ~= [
 				`lib`~n~`.so`,
 			];
