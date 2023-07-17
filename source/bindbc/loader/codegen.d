@@ -54,40 +54,40 @@ enum makeDynloadFns = (string name, string libNames, string[] bindModules) nothr
 private SharedLib lib;
 
 @nogc nothrow{
-void unload`~name~`(){ if(lib != bindbc.loader.invalidHandle) lib.unload(); }
-
-bool is`~name~`Loaded(){ return lib != bindbc.loader.invalidHandle; }
-
-LoadMsg load`~name~`(){
-	enum libNamesCT = `~libNames~`;
-	const(char)[][libNamesCT.length] libNames = libNamesCT;
+	void unload`~name~`(){ if(lib != bindbc.loader.invalidHandle) lib.unload(); }
 	
-	LoadMsg ret;
-	foreach(name; libNames){
-		ret = load`~name~`(name.ptr);
-		if(ret == LoadMsg.success) break;
-	}
-	return ret;
-}
-
-LoadMsg load`~name~`(const(char)* libName){
-	lib = bindbc.loader.load(libName);
-	if(lib == bindbc.loader.invalidHandle){
-		return LoadMsg.noLibrary;
+	bool is`~name~`Loaded(){ return lib != bindbc.loader.invalidHandle; }
+	
+	LoadMsg load`~name~`(){
+		enum libNamesCT = `~libNames~`;
+		const(char)[][libNamesCT.length] libNames = libNamesCT;
+		
+		LoadMsg ret;
+		foreach(name; libNames){
+			ret = load`~name~`(name.ptr);
+			if(ret == LoadMsg.success) break;
+		}
+		return ret;
 	}
 	
-	auto errCount = errorCount();
-`;
+	LoadMsg load`~name~`(const(char)* libName){
+		lib = bindbc.loader.load(libName);
+		if(lib == bindbc.loader.invalidHandle){
+			return LoadMsg.noLibrary;
+		}
+		
+		auto errCount = errorCount();
+		`;
 	
 	foreach(mod; bindModules){
-		dynloadFns ~= "\n\t"~mod~".bindModuleSymbols(lib);";
+		dynloadFns ~= "\n\t\t"~mod~".bindModuleSymbols(lib);";
 	}
 	
 	dynloadFns ~= `
-	
-	if(errCount != errorCount()) return LoadMsg.badLibrary;
-	return LoadMsg.success;
-}
+		
+		if(errCount != errorCount()) return LoadMsg.badLibrary;
+		return LoadMsg.success;
+	}
 }`;
 	
 	return dynloadFns;
