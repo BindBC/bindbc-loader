@@ -229,7 +229,10 @@ void addErr(const(char)* errstr, const(char)* message){
 }
 
 version(Windows){
-	import core.sys.windows.windows;
+	import core.sys.windows.winbase;
+	import core.sys.windows.winnt;
+	private alias BOOL = int;
+	private alias HMODULE = void*;
 	extern(Windows) @nogc nothrow alias pSetDLLDirectory = BOOL function(const(char)*);
 	pSetDLLDirectory setDLLDirectory;
 	
