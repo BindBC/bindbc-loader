@@ -248,24 +248,43 @@ version(Windows){
 		return GetProcAddress(lib, symbolName);
 	}
 	
-	void sysError(ErrorInfo* pinfo){
-		char* msgBuf;
+	void wstringToString(char** dst, const(wchar)* src)
+	{
+		import core.sys.windows.winnls;
+		auto srcLen = lstrlenW(src);
+		auto dstBuffLen = wchar.sizeof*srcLen + 1;
+		*dst = cast(char*)malloc(dstBuffLen);
+		WideCharToMultiByte(
+			CP_UTF8,
+			0,
+			src,
+			srcLen,
+			*dst,
+			cast(int)dstBuffLen,
+			null,
+			null
+		);
+	}
+
+	void sysError(ErrorInfo* pinfo)
+	{
+		wchar* msgBuf;
 		enum uint langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
 		
-		FormatMessageA(
+		FormatMessageW(
 			FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS,
 			null,
 			GetLastError(),
 			langID,
-			cast(char*)&msgBuf,
+			cast(wchar*)&msgBuf,
 			0,
 			null
 		);
 		
 		if(msgBuf){
-			copyString(&pinfo._message, msgBuf);
+			wstringToString(&pinfo._message, msgBuf);
 			LocalFree(msgBuf);
 		}else{
 			copyString(&pinfo._message, "Unknown Error");
