@@ -248,8 +248,7 @@ version(Windows){
 		return GetProcAddress(lib, symbolName);
 	}
 	
-	void wstringToString(char** dst, const(wchar)* src)
-	{
+	void wstringToString(char** dst, const(wchar)* src){
 		import core.sys.windows.winnls;
 		auto srcLen = lstrlenW(src);
 		auto dstBuffLen = wchar.sizeof*srcLen + 1;
@@ -262,12 +261,11 @@ version(Windows){
 			*dst,
 			cast(int)dstBuffLen,
 			null,
-			null
+			null,
 		);
 	}
 
-	void sysError(ErrorInfo* pinfo)
-	{
+	void sysError(ErrorInfo* pinfo){
 		wchar* msgBuf;
 		enum uint langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
 		
@@ -280,7 +278,7 @@ version(Windows){
 			langID,
 			cast(wchar*)&msgBuf,
 			0,
-			null
+			null,
 		);
 		
 		if(msgBuf){
