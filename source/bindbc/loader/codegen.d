@@ -6,48 +6,80 @@
 +/
 module bindbc.loader.codegen;
 
-enum makeLibPaths = (string[] names, string[][string] platformNames=["": []], string[][string] platformPaths=["": []]) nothrow pure @safe{
+enum makeLibPaths = (string[] names, string[][string] platformNames=null, string[][string] platformPaths=null) nothrow pure @safe{
 	string[] namesFor(string platform){
 		if(platform in platformNames) return platformNames[platform] ~ names;
 		else return names;
 	}
 	string[] pathsFor(string platform){
-		if(auto ret = platform in platformPaths) return *ret;
-		else return null;
+		if(auto ret = platform in platformPaths){
+			return *ret ~ [""];
+		}
+		else return [""];
 	}
 	string[] ret;
 	version(Windows){
-		ret ~= pathsFor("Windows");
 		foreach(n; namesFor("Windows")){
-			ret ~= [
-				n~`.dll`,
-			];
+			foreach(path; pathsFor("Posix")){
+				ret ~= [
+					path ~ n~`.dll`,
+				];
+			}
 		}
 	}else version(OSX){
-		ret ~= pathsFor("OSX");
+		foreach(n; namesFor("OSX")){
+			foreach(path; pathsFor("OSX")){
+				ret ~= [
+					path ~ `lib`~n~`.dylib`,
+					path ~ n,
+				];
+			}
+		}
 		foreach(n; namesFor("OSX")){
 			ret ~= [
-				`lib`~n~`.dylib`,
 				`/opt/homebrew/lib/lib`~n~`.dylib`,
-				n,
 				`/Library/Frameworks/`~n~`.framework/`~n,
 				`/System/Library/Frameworks/`~n~`.framework/`~n,
 			];
 		}
 	}else version(Posix){
-		ret ~= pathsFor("Posix");
 		foreach(n; namesFor("Posix")){
-			ret ~= [
-				`lib`~n~`.so`,
-			];
+			foreach(path; pathsFor("Posix")){
+				ret ~= [
+					path ~ `lib`~n~`.so`,
+				];
+			}
 		}
 	}else static assert(0, "BindBC-Loader does not have library search paths set up for this platform.");
 	string joined = `[`;
-	foreach(item; ret){
+	foreach(item; ret[0..$-1]){
 		joined ~= `"` ~ item ~ `",`;
 	}
-	return joined ~ `]`;
+	return joined ~ `"` ~ ret[$-1] ~ `"]`;
 };
+unittest{
+	version(Windows){
+		assert(mixin(makeLibPaths(["test"], null, [
+			"Windows": ["windows_path/"],
+		])) == ["windows_path/test.dll", "test.dll"]);
+	}else version(OSX){
+		assert(mixin(makeLibPaths(["test"], null, [
+			"OSX": ["macos_path/"],
+		])) == [
+			`macos_path/libtest.dylib`,
+			`macos_path/test`,
+			`libtest.dylib`,
+			`test`,
+			`/opt/homebrew/lib/libtest.dylib`,
+			`/Library/Frameworks/test.framework/test`,
+			`/System/Library/Frameworks/test.framework/test`,
+		]);
+	}else version(Posix){
+		assert(mixin(makeLibPaths(["test"], null, [
+			"Posix": ["posix_path/"],
+		])) == ["posix_path/libtest.so", "libtest.so"]);
+	}
+}
 
 enum makeDynloadFns = (string name, string libNames, string[] bindModules) nothrow pure @safe{
 	string dynloadFns = `
