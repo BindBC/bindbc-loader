@@ -1,4 +1,4 @@
-# BindBC-Loader
+# [BindBC-Loader](https://git.sleeping.town/BindBC/bindbc-loader)
 This library contains the cross-platform shared library loading API used by the BindBC packages in their dynamic binding configurations. It is compatible with BetterC, `@nogc`, and `nothrow`, and intended as a replacement for [DerelictUtil](https://github.com/DerelictOrg/DerelictUtil), which does not provide the same level of compatibility.
 
 The dynamic configuration of each official BindBC package implements its own public load function, which calls into the BindBC-Loader API to load function pointers from the appropriate shared library. BindBC-Loader is only for dynamic bindings, which have no link-time dependency on the bound library.
